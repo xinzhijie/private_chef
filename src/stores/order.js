@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { queryAll, execute } from '@/db'
+import { queryAll, queryOne, execute, run } from '@/db'
 import { getToday } from '@/utils/constants'
 
 export const useOrderStore = defineStore('order', () => {
@@ -53,9 +53,30 @@ export const useOrderStore = defineStore('order', () => {
     return count
   }
 
+  function addMyOrder(user, foodId, foodName, type, orderDate) {
+    return execute(
+      'INSERT INTO orders (user_id, food_id, food_name, username, type, order_date) VALUES (?, ?, ?, ?, ?, ?)',
+      [user.id, Number(foodId), foodName, user.username, type, orderDate]
+    )
+  }
+
+  function removeMyOrder(userId, foodId, type, orderDate) {
+    const uid = Number(userId)
+    const fid = Number(foodId)
+    const one = queryOne(
+      'SELECT id FROM orders WHERE user_id = ? AND food_id = ? AND type = ? AND order_date = ? ORDER BY id DESC LIMIT 1',
+      [uid, fid, type, orderDate]
+    )
+    if (!one) return false
+    run('DELETE FROM orders WHERE id = ?', [one.id])
+    return true
+  }
+
   return {
     placeOrder,
     placeOrders,
+    addMyOrder,
+    removeMyOrder,
     getOrders,
     getTodayOrders
   }

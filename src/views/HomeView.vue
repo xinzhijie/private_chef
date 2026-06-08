@@ -5,11 +5,6 @@
         <h2 class="shop-title">家庭厨房</h2>
         <span class="shop-date">今日 {{ today }}</span>
       </div>
-      <div class="shop-stats">
-        <span class="stat-item">{{ groupedOrders.length }} 道菜</span>
-        <span class="stat-divider">|</span>
-        <span class="stat-item">共 {{ totalPortions }} 份</span>
-      </div>
     </div>
 
     <div class="meal-tabs">
@@ -88,38 +83,10 @@
 
     <OrderCartBar
       v-if="auth.canOrder"
-      ref="cartBarRef"
       :meal-type="currentMeal"
       :submitting="submitting"
       @submit="handleSubmit"
     />
-
-    <div class="orders-section">
-      <h3>
-        <el-icon><List /></el-icon>
-        今日{{ mealLabel }}点餐记录
-      </h3>
-      <div v-if="groupedOrders.length" class="order-list">
-        <div v-for="group in groupedOrders" :key="group.foodId" class="order-group">
-          <div class="order-group-header">
-            <span class="order-food-name">{{ group.foodName }}</span>
-            <span class="order-food-qty">×{{ group.total }}</span>
-          </div>
-          <div class="order-group-users">
-            <span
-              v-for="u in group.users"
-              :key="u.userId"
-              class="user-portion"
-              :class="{ 'is-mine': u.userId === auth.user?.id }"
-            >
-              {{ u.username }} {{ u.count }}份
-              <span v-if="u.userId === auth.user?.id" class="mine-tag">我</span>
-            </span>
-          </div>
-        </div>
-      </div>
-      <el-empty v-else description="还没有人点餐，快来第一个下单吧！" :image-size="60" />
-    </div>
 
     <FoodDetailDialog
       v-model:visible="detailVisible"
@@ -132,14 +99,13 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useFoodStore } from '@/stores/food'
 import { useCategoryStore } from '@/stores/category'
 import { useOrderStore } from '@/stores/order'
 import { useCartStore } from '@/stores/cart'
-import { MEAL_TYPES, MEAL_LABELS, getToday } from '@/utils/constants'
-import { groupOrdersByFood } from '@/utils/orders'
+import { MEAL_TYPES, getToday } from '@/utils/constants'
 import FoodDetailDialog from '@/components/FoodDetailDialog.vue'
 import OrderCartBar from '@/components/OrderCartBar.vue'
 import { ElMessage } from 'element-plus'
@@ -155,15 +121,9 @@ const currentCategory = ref(null)
 const today = getToday()
 const foods = ref([])
 const categories = ref([])
-const orders = ref([])
 const detailVisible = ref(false)
 const selectedFood = ref(null)
 const submitting = ref(false)
-const cartBarRef = ref(null)
-
-const mealLabel = computed(() => MEAL_LABELS[currentMeal.value])
-const groupedOrders = computed(() => groupOrdersByFood(orders.value))
-const totalPortions = computed(() => groupedOrders.value.reduce((sum, g) => sum + g.total, 0))
 
 function getQty(foodId) {
   return cart.getQuantity(currentMeal.value, foodId)
@@ -172,7 +132,6 @@ function getQty(foodId) {
 function loadData() {
   categories.value = categoryStore.getCategories(currentMeal.value)
   foods.value = foodStore.getFoods(currentMeal.value, true, currentCategory.value)
-  orders.value = orderStore.getTodayOrders(currentMeal.value, today)
 }
 
 function switchMeal(meal) {
@@ -246,16 +205,6 @@ onMounted(loadData)
   font-size: 13px;
   opacity: 0.85;
   margin-left: 10px;
-}
-
-.shop-stats {
-  font-size: 13px;
-  opacity: 0.9;
-}
-
-.stat-divider {
-  margin: 0 8px;
-  opacity: 0.5;
 }
 
 .meal-tabs {
@@ -485,86 +434,6 @@ onMounted(loadData)
   font-size: 14px;
   font-weight: 600;
   color: #303133;
-}
-
-.orders-section {
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.orders-section h3 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  margin-bottom: 12px;
-  color: #303133;
-}
-
-.order-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.order-group {
-  padding: 12px 14px;
-  border-radius: 8px;
-  background: #f5f7fa;
-}
-
-.order-group-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.order-food-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: #303133;
-}
-
-.order-food-qty {
-  font-size: 14px;
-  font-weight: 600;
-  color: #0085ff;
-}
-
-.order-group-users {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.user-portion {
-  font-size: 13px;
-  color: #606266;
-  background: #fff;
-  padding: 4px 10px;
-  border-radius: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.user-portion.is-mine {
-  color: #e6a23c;
-  background: #fdf6ec;
-  border: 1px solid #faecd8;
-  font-weight: 500;
-}
-
-.mine-tag {
-  font-size: 10px;
-  background: #e6a23c;
-  color: #fff;
-  padding: 1px 4px;
-  border-radius: 4px;
-  line-height: 1.2;
 }
 
 @media (max-width: 480px) {

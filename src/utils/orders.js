@@ -3,10 +3,16 @@ export function groupOrdersByFood(orders) {
   const map = new Map()
 
   for (const order of orders) {
-    const key = order.food_id
+    const foodId = Number(order.food_id)
+    const userId = Number(order.user_id)
+    if (!Number.isFinite(foodId) || !Number.isFinite(userId)) continue
+
+    const key = `${order.order_date}|${order.type}|${foodId}`
+
     if (!map.has(key)) {
       map.set(key, {
-        foodId: order.food_id,
+        groupKey: key,
+        foodId,
         foodName: order.food_name,
         type: order.type,
         orderDate: order.order_date,
@@ -16,12 +22,12 @@ export function groupOrdersByFood(orders) {
     }
     const group = map.get(key)
     group.total++
-    const existing = group.users.get(order.user_id)
+    const existing = group.users.get(userId)
     if (existing) {
       existing.count++
     } else {
-      group.users.set(order.user_id, {
-        userId: order.user_id,
+      group.users.set(userId, {
+        userId,
         username: order.username,
         count: 1
       })
@@ -38,4 +44,8 @@ export function groupOrdersByFood(orders) {
 
 export function formatUserPortions(users) {
   return users.map((u) => `${u.username} ${u.count}份`).join(' · ')
+}
+
+export function getOrderGroupKey(row) {
+  return row.groupKey || `${row.orderDate}|${row.type}|${row.foodId}`
 }

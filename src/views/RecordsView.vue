@@ -17,20 +17,26 @@
       <el-button @click="resetFilter">重置</el-button>
     </div>
 
-    <el-table :data="groupedRecords" stripe style="width: 100%" v-loading="loading">
+    <el-table
+      :data="groupedRecords"
+      row-key="groupKey"
+      stripe
+      style="width: 100%"
+      v-loading="loading"
+    >
       <el-table-column prop="foodName" label="菜品" min-width="120" />
       <el-table-column label="数量" width="80" align="center">
         <template #default="{ row }">
           <span class="qty-text">×{{ row.total }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="点餐明细" min-width="220">
+      <el-table-column label="点餐明细" min-width="200">
         <template #default="{ row }">
           <span class="user-list">
             <template v-for="(u, idx) in row.users" :key="u.userId">
-              <span :class="{ 'mine-user': u.userId === auth.user?.id }">
+              <span :class="{ 'mine-user': isMine(u.userId) }">
                 {{ u.username }} {{ u.count }}份
-                <el-tag v-if="u.userId === auth.user?.id" size="small" type="warning">我</el-tag>
+                <el-tag v-if="isMine(u.userId)" size="small" type="warning">我</el-tag>
               </span>
               <span v-if="idx < row.users.length - 1" class="sep"> · </span>
             </template>
@@ -40,6 +46,19 @@
       <el-table-column prop="orderDate" label="日期" width="120" />
       <el-table-column label="餐段" width="80">
         <template #default="{ row }">{{ MEAL_LABELS[row.type] }}</template>
+      </el-table-column>
+      <el-table-column v-if="auth.canOrder" label="我的份数" width="130" align="center">
+        <template #default="{ row }">
+          <RecordQtyControl
+            :key="row.groupKey"
+            :food-id="row.foodId"
+            :food-name="row.foodName"
+            :type="row.type"
+            :order-date="row.orderDate"
+            :count="myCount(row)"
+            @changed="loadRecords"
+          />
+        </template>
       </el-table-column>
     </el-table>
 
@@ -53,6 +72,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useOrderStore } from '@/stores/order'
 import { MEAL_TYPES, MEAL_LABELS, getToday } from '@/utils/constants'
 import { groupOrdersByFood } from '@/utils/orders'
+import RecordQtyControl from '@/components/RecordQtyControl.vue'
 
 const auth = useAuthStore()
 const orderStore = useOrderStore()
@@ -63,6 +83,15 @@ const records = ref([])
 const loading = ref(false)
 
 const groupedRecords = computed(() => groupOrdersByFood(records.value))
+
+function isMine(userId) {
+  return Number(userId) === Number(auth.user?.id)
+}
+
+function myCount(row) {
+  const mine = row.users.find((u) => isMine(u.userId))
+  return mine?.count || 0
+}
 
 function loadRecords() {
   loading.value = true

@@ -71,6 +71,11 @@ export function execute(sql, params = []) {
   return result[0]?.values[0][0] || null
 }
 
+export function run(sql, params = []) {
+  db.run(sql, params)
+  saveDb()
+}
+
 /** 登录会话写入 SQLite session 表 */
 export function setSession(userId) {
   db.run('DELETE FROM session')
