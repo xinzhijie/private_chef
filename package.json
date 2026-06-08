@@ -1,0 +1,26 @@
+{
+  "name": "private-chef",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "init-db": "node scripts/init-db.mjs",
+    "verify-db": "node scripts/verify-db.mjs",
+    "predev": "node scripts/init-db.mjs",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "element-plus": "^2.9.0",
+    "@element-plus/icons-vue": "^2.3.1",
+    "pinia": "^2.3.0",
+    "sql.js": "^1.12.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.0.3"
+  }
+}
