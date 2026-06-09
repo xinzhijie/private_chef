@@ -180,8 +180,13 @@ app.get('/api/foods', requireAuth, (req, res) => {
   const params = []
   const conditions = []
   if (type) {
-    conditions.push('(f.type = ? OR f.type = ?)')
-    params.push(type, 'all')
+    if (type === 'all') {
+      conditions.push('f.type = ?')
+      params.push('all')
+    } else {
+      conditions.push('(f.type = ? OR f.type = ?)')
+      params.push(type, 'all')
+    }
   }
   if (onlyActive === 'true' || onlyActive === '1') {
     conditions.push('f.status = 1')

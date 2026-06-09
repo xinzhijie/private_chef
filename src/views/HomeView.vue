@@ -59,7 +59,10 @@
             </div>
           </div>
           <div class="food-info">
-            <div class="food-name">{{ food.name }}</div>
+            <div class="food-name">
+              {{ food.name }}
+              <el-tag v-if="food.type === ALL_MEAL_TYPE" size="small" type="info" class="all-meal-tag">全餐段</el-tag>
+            </div>
             <div v-if="food.material" class="food-desc">{{ food.material }}</div>
             <div v-if="food.remark" class="food-remark">{{ food.remark }}</div>
           </div>
@@ -105,7 +108,7 @@ import { useFoodStore } from '@/stores/food'
 import { useCategoryStore } from '@/stores/category'
 import { useOrderStore } from '@/stores/order'
 import { useCartStore } from '@/stores/cart'
-import { MEAL_TYPES, getToday } from '@/utils/constants'
+import { MEAL_TYPES, ALL_MEAL_TYPE, getToday } from '@/utils/constants'
 import FoodDetailDialog from '@/components/FoodDetailDialog.vue'
 import OrderCartBar from '@/components/OrderCartBar.vue'
 import { ElMessage } from 'element-plus'
@@ -360,6 +363,14 @@ onMounted(loadData)
   font-weight: 600;
   color: #303133;
   margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.all-meal-tag {
+  flex-shrink: 0;
 }
 
 .food-desc {

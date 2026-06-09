@@ -8,7 +8,7 @@ export const MEAL_TYPES = [
 export const ALL_MEAL_TYPE = 'all'
 
 export const MEAL_LABELS = {
-  all: '全部',
+  all: '全部餐段',
   breakfast: '早餐',
   lunch: '午餐',
   dinner: '晚餐'

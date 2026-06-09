@@ -25,7 +25,12 @@
             filterable
             style="flex: 1"
           >
-            <el-option v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.id" />
+            <el-option
+              v-for="cat in categories"
+              :key="cat.id"
+              :label="categoryOptionLabel(cat)"
+              :value="cat.id"
+            />
           </el-select>
           <el-button @click="handleNewCategory">新建</el-button>
         </div>
@@ -71,7 +76,7 @@
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
-import { MEAL_TYPES, ALL_MEAL_TYPE } from '@/utils/constants'
+import { MEAL_TYPES, MEAL_LABELS, ALL_MEAL_TYPE } from '@/utils/constants'
 import { useCategoryStore } from '@/stores/category'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -102,6 +107,13 @@ const form = reactive(defaultForm())
 
 const rules = {
   name: [{ required: true, message: '请输入菜名', trigger: 'blur' }]
+}
+
+function categoryOptionLabel(cat) {
+  if (form.type === ALL_MEAL_TYPE) {
+    return `${cat.name}（${MEAL_LABELS[cat.type] || cat.type}）`
+  }
+  return cat.name
 }
 
 async function loadCategories() {

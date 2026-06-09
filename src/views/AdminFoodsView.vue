@@ -11,6 +11,7 @@
     <div class="filter-bar">
       <el-select v-model="filterMeal" placeholder="全部餐段" style="width: 120px" @change="onFilterMealChange">
         <el-option label="全部" value="" />
+        <el-option label="全餐段菜品" :value="ALL_MEAL_TYPE" />
         <el-option v-for="meal in MEAL_TYPES" :key="meal.value" :label="meal.label" :value="meal.value" />
       </el-select>
       <el-select v-model="filterCategory" placeholder="全部类别" clearable style="width: 120px" @change="loadFoods">
@@ -71,7 +72,7 @@
 import { ref, onMounted } from 'vue'
 import { useFoodStore } from '@/stores/food'
 import { useCategoryStore } from '@/stores/category'
-import { MEAL_TYPES, MEAL_LABELS } from '@/utils/constants'
+import { MEAL_TYPES, MEAL_LABELS, ALL_MEAL_TYPE } from '@/utils/constants'
 import FoodFormDialog from '@/components/FoodFormDialog.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -87,7 +88,9 @@ const formVisible = ref(false)
 const editingFood = ref(null)
 
 async function loadCategoryOptions() {
-  categoryOptions.value = await categoryStore.getCategories(filterMeal.value || null)
+  const mealType =
+    filterMeal.value && filterMeal.value !== ALL_MEAL_TYPE ? filterMeal.value : null
+  categoryOptions.value = await categoryStore.getCategories(mealType)
   if (filterCategory.value && !categoryOptions.value.some((c) => c.id === filterCategory.value)) {
     filterCategory.value = ''
   }
