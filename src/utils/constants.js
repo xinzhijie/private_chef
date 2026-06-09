@@ -4,7 +4,11 @@ export const MEAL_TYPES = [
   { value: 'dinner', label: '晚餐' }
 ]
 
+/** 全餐段菜品类型，在早/中/晚均展示 */
+export const ALL_MEAL_TYPE = 'all'
+
 export const MEAL_LABELS = {
+  all: '全部',
   breakfast: '早餐',
   lunch: '午餐',
   dinner: '晚餐'

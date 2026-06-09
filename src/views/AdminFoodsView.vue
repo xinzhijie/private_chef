@@ -9,7 +9,8 @@
     </div>
 
     <div class="filter-bar">
-      <el-select v-model="filterMeal" placeholder="全部餐段" clearable style="width: 120px" @change="onFilterMealChange">
+      <el-select v-model="filterMeal" placeholder="全部餐段" style="width: 120px" @change="onFilterMealChange">
+        <el-option label="全部" value="" />
         <el-option v-for="meal in MEAL_TYPES" :key="meal.value" :label="meal.label" :value="meal.value" />
       </el-select>
       <el-select v-model="filterCategory" placeholder="全部类别" clearable style="width: 120px" @change="loadFoods">
@@ -36,7 +37,7 @@
       </el-table-column>
       <el-table-column prop="name" label="菜名" />
       <el-table-column label="餐段" width="80">
-        <template #default="{ row }">{{ MEAL_LABELS[row.type] }}</template>
+        <template #default="{ row }">{{ MEAL_LABELS[row.type] || row.type }}</template>
       </el-table-column>
       <el-table-column label="类别" width="100">
         <template #default="{ row }">{{ row.category_name || '未分类' }}</template>

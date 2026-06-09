@@ -12,6 +12,7 @@
       </el-form-item>
       <el-form-item label="餐段" prop="type">
         <el-select v-model="form.type" placeholder="选择餐段" style="width: 100%" @change="handleTypeChange">
+          <el-option label="全部" :value="ALL_MEAL_TYPE" />
           <el-option v-for="meal in MEAL_TYPES" :key="meal.value" :label="meal.label" :value="meal.value" />
         </el-select>
       </el-form-item>
@@ -70,7 +71,7 @@
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
-import { MEAL_TYPES } from '@/utils/constants'
+import { MEAL_TYPES, ALL_MEAL_TYPE } from '@/utils/constants'
 import { useCategoryStore } from '@/stores/category'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -89,7 +90,7 @@ const categories = ref([])
 
 const defaultForm = () => ({
   name: '',
-  type: 'breakfast',
+  type: ALL_MEAL_TYPE,
   category_id: null,
   status: 1,
   image: '',
@@ -100,23 +101,31 @@ const defaultForm = () => ({
 const form = reactive(defaultForm())
 
 const rules = {
-  name: [{ required: true, message: '请输入菜名', trigger: 'blur' }],
-  type: [{ required: true, message: '请选择餐段', trigger: 'change' }]
+  name: [{ required: true, message: '请输入菜名', trigger: 'blur' }]
 }
 
 async function loadCategories() {
-  categories.value = await categoryStore.getCategories(form.type)
+  const mealType = form.type === ALL_MEAL_TYPE ? null : form.type
+  categories.value = await categoryStore.getCategories(mealType)
   if (form.category_id && !categories.value.some((c) => c.id === form.category_id)) {
     form.category_id = null
   }
 }
 
 function handleTypeChange() {
+  if (form.type === ALL_MEAL_TYPE) {
+    loadCategories()
+    return
+  }
   form.category_id = null
   loadCategories()
 }
 
 async function handleNewCategory() {
+  if (form.type === ALL_MEAL_TYPE) {
+    ElMessage.warning('请先选择具体餐段（早餐/午餐/晚餐）再新建类别')
+    return
+  }
   try {
     const { value } = await ElMessageBox.prompt('请输入类别名称', '新建类别', {
       confirmButtonText: '创建',
