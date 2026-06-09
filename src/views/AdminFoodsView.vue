@@ -85,8 +85,8 @@ const categoryOptions = ref([])
 const formVisible = ref(false)
 const editingFood = ref(null)
 
-function loadCategoryOptions() {
-  categoryOptions.value = categoryStore.getCategories(filterMeal.value || null)
+async function loadCategoryOptions() {
+  categoryOptions.value = await categoryStore.getCategories(filterMeal.value || null)
   if (filterCategory.value && !categoryOptions.value.some((c) => c.id === filterCategory.value)) {
     filterCategory.value = ''
   }
@@ -98,8 +98,8 @@ function onFilterMealChange() {
   loadFoods()
 }
 
-function loadFoods() {
-  let list = foodStore.getFoods(filterMeal.value || null, false, filterCategory.value || null)
+async function loadFoods() {
+  let list = await foodStore.getFoods(filterMeal.value || null, false, filterCategory.value || null)
   if (filterStatus.value !== '' && filterStatus.value !== null && filterStatus.value !== undefined) {
     list = list.filter(f => f.status === filterStatus.value)
   }
@@ -111,28 +111,28 @@ function openForm(food = null) {
   formVisible.value = true
 }
 
-function handleSave(data, id) {
+async function handleSave(data, id) {
   if (id) {
-    foodStore.updateFood(id, data)
+    await foodStore.updateFood(id, data)
     ElMessage.success('菜品已更新')
   } else {
-    foodStore.addFood(data)
+    await foodStore.addFood(data)
     ElMessage.success('菜品已添加')
   }
-  loadFoods()
+  await loadFoods()
 }
 
 async function toggleStatus(row) {
-  const newStatus = foodStore.toggleStatus(row.id)
+  const newStatus = await foodStore.toggleStatus(row.id)
   ElMessage.success(newStatus === 1 ? '已上架' : '已下架')
-  loadFoods()
+  await loadFoods()
 }
 
 async function handleDelete(row) {
   await ElMessageBox.confirm(`确定删除「${row.name}」吗？此操作不可恢复。`, '删除确认', { type: 'warning' })
-  foodStore.deleteFood(row.id)
+  await foodStore.deleteFood(row.id)
   ElMessage.success('已删除')
-  loadFoods()
+  await loadFoods()
 }
 
 onMounted(() => {

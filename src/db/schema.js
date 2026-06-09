@@ -33,6 +33,7 @@ export const SCHEMA_SQL = [
     username TEXT NOT NULL,
     type TEXT NOT NULL,
     order_date TEXT NOT NULL,
+    remark TEXT DEFAULT '',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP
   )`,
   `CREATE TABLE IF NOT EXISTS session (
@@ -71,6 +72,12 @@ export function migrateSchema(db) {
   const colNames = cols[0]?.values.map((row) => row[1]) || []
   if (!colNames.includes('category_id')) {
     db.run('ALTER TABLE foods ADD COLUMN category_id INTEGER')
+  }
+
+  const orderCols = db.exec('PRAGMA table_info(orders)')
+  const orderColNames = orderCols[0]?.values.map((row) => row[1]) || []
+  if (!orderColNames.includes('remark')) {
+    db.run("ALTER TABLE orders ADD COLUMN remark TEXT DEFAULT ''")
   }
 }
 

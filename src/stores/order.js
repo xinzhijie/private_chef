@@ -1,79 +1,42 @@
 import { defineStore } from 'pinia'
-import { queryAll, queryOne, execute, run } from '@/db'
+import { api } from '@/api/client'
 import { getToday } from '@/utils/constants'
 
 export const useOrderStore = defineStore('order', () => {
-  function placeOrder(user, food, type, orderDate) {
-    const date = orderDate || getToday()
-    return execute(
-      'INSERT INTO orders (user_id, food_id, food_name, username, type, order_date) VALUES (?, ?, ?, ?, ?, ?)',
-      [user.id, food.id, food.name, user.username, type, date]
-    )
+  async function getOrders(filters = {}) {
+    return api.get('/orders', {
+      orderDate: filters.orderDate,
+      type: filters.type,
+      userId: filters.userId
+    })
   }
 
-  function getOrders(filters = {}) {
-    let sql = 'SELECT * FROM orders'
-    const params = []
-    const conditions = []
-    if (filters.orderDate) {
-      conditions.push('order_date = ?')
-      params.push(filters.orderDate)
-    }
-    if (filters.type) {
-      conditions.push('type = ?')
-      params.push(filters.type)
-    }
-    if (filters.userId) {
-      conditions.push('user_id = ?')
-      params.push(filters.userId)
-    }
-    if (conditions.length) {
-      sql += ' WHERE ' + conditions.join(' AND ')
-    }
-    sql += ' ORDER BY create_time DESC'
-    return queryAll(sql, params)
-  }
-
-  function getTodayOrders(type, orderDate) {
+  async function getTodayOrders(type, orderDate) {
     return getOrders({ type, orderDate: orderDate || getToday() })
   }
 
-  function placeOrders(user, items, type, orderDate) {
-    const date = orderDate || getToday()
-    let count = 0
-    for (const item of items) {
-      for (let i = 0; i < item.quantity; i++) {
-        execute(
-          'INSERT INTO orders (user_id, food_id, food_name, username, type, order_date) VALUES (?, ?, ?, ?, ?, ?)',
-          [user.id, item.food.id, item.food.name, user.username, type, date]
-        )
-        count++
-      }
-    }
-    return count
+  async function placeOrders(user, items, type, orderDate) {
+    const data = await api.post('/orders/batch', {
+      type,
+      orderDate: orderDate || getToday(),
+      items
+    })
+    return data.count
   }
 
-  function addMyOrder(user, foodId, foodName, type, orderDate) {
-    return execute(
-      'INSERT INTO orders (user_id, food_id, food_name, username, type, order_date) VALUES (?, ?, ?, ?, ?, ?)',
-      [user.id, Number(foodId), foodName, user.username, type, orderDate]
-    )
+  async function addMyOrder(user, foodId, foodName, type, orderDate, remark = '') {
+    if (orderDate !== getToday()) return false
+    const data = await api.post('/orders', { foodId, foodName, type, orderDate, remark })
+    return data.success
   }
 
-  function removeMyOrder(userId, foodId, type, orderDate) {
-    const uid = Number(userId)
-    const fid = Number(foodId)
-    const one = queryOne(
-      'SELECT id FROM orders WHERE user_id = ? AND food_id = ? AND type = ? AND order_date = ? ORDER BY id DESC LIMIT 1',
-      [uid, fid, type, orderDate]
-    )
-    if (!one) return false
-    run('DELETE FROM orders WHERE id = ?', [one.id])
-    return true
+  async function removeMyOrder(userId, foodId, type, orderDate, remark = '') {
+    if (orderDate !== getToday()) return false
+    const data = await api.del('/orders/one', { foodId, type, orderDate, remark })
+    return data.success
   }
 
   return {
-    placeOrder,
     placeOrders,
     addMyOrder,
     removeMyOrder,

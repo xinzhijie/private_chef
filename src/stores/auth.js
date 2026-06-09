@@ -1,69 +1,78 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { queryOne, queryAll, execute, setSession, getSessionUser } from '@/db'
+import { api } from '@/api/client'
 import { ROLES } from '@/utils/constants'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
+  let sessionReady = null
 
   const isLoggedIn = computed(() => !!user.value)
   const isAdmin = computed(() => user.value?.role === ROLES.ADMIN)
   const isViewer = computed(() => user.value?.role === ROLES.VIEWER)
   const canOrder = computed(() => user.value && !isViewer.value)
 
-  /** 从 SQLite session 表恢复登录状态 */
-  function loadSession() {
-    const found = getSessionUser()
-    if (found) {
-      user.value = { id: found.id, username: found.username, role: found.role }
+  function clearSession() {
+    user.value = null
+  }
+
+  async function loadSession() {
+    try {
+      const data = await api.get('/auth/me', undefined, { skipAuthRedirect: true })
+      user.value = data.user || null
+    } catch {
+      user.value = null
     }
   }
 
-  function login(username, password) {
-    const found = queryOne('SELECT * FROM users WHERE username = ? AND password = ?', [username, password])
-    if (!found) return { success: false, message: '用户名或密码错误' }
-    user.value = { id: found.id, username: found.username, role: found.role }
-    setSession(found.id)
+  async function initSession() {
+    if (!sessionReady) {
+      sessionReady = loadSession().catch(() => {
+        user.value = null
+      })
+    }
+    await sessionReady
+  }
+
+  async function login(username, password) {
+    const result = await api.post('/auth/login', { username, password })
+    if (!result.success) return result
+    user.value = result.user
+    sessionReady = Promise.resolve()
     return { success: true }
   }
 
-  function register(username, password) {
-    const existing = queryOne('SELECT id FROM users WHERE username = ?', [username])
-    if (existing) return { success: false, message: '用户名已存在' }
-    if (!username || !password) return { success: false, message: '用户名和密码不能为空' }
-    if (password.length < 4) return { success: false, message: '密码至少4位' }
-    execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', [username, password, ROLES.USER])
-    return { success: true, message: '注册成功，请登录' }
+  async function register(username, password) {
+    return api.post('/auth/register', { username, password })
   }
 
-  function logout() {
-    user.value = null
-    setSession(null)
+  async function logout() {
+    try {
+      await api.post('/auth/logout')
+    } finally {
+      clearSession()
+      sessionReady = Promise.resolve()
+    }
   }
 
-  function getAllUsers() {
-    return queryAll('SELECT id, username, role FROM users ORDER BY id')
+  async function getAllUsers() {
+    return api.get('/users')
   }
 
-  function createUser(username, password, role) {
-    const existing = queryOne('SELECT id FROM users WHERE username = ?', [username])
-    if (existing) return { success: false, message: '用户名已存在' }
-    execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', [username, password, role])
-    return { success: true }
+  async function createUser(username, password, role) {
+    return api.post('/users', { username, password, role })
   }
 
-  function updateUserRole(id, role) {
-    execute('UPDATE users SET role = ? WHERE id = ?', [role, id])
+  async function updateUserRole(id, role) {
+    const result = await api.patch(`/users/${id}/role`, { role })
     if (user.value?.id === id) {
       user.value.role = role
     }
-    return { success: true }
+    return result
   }
 
-  function deleteUser(id) {
-    if (user.value?.id === id) return { success: false, message: '不能删除当前登录用户' }
-    execute('DELETE FROM users WHERE id = ?', [id])
-    return { success: true }
+  async function deleteUser(id) {
+    return api.del(`/users/${id}`)
   }
 
   return {
@@ -72,6 +81,8 @@ export const useAuthStore = defineStore('auth', () => {
     isAdmin,
     isViewer,
     canOrder,
+    clearSession,
+    initSession,
     loadSession,
     login,
     register,

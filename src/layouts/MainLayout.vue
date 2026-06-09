@@ -49,7 +49,7 @@ const roleTagType = computed(() => {
 
 async function handleLogout() {
   await ElMessageBox.confirm('确定要退出登录吗？', '提示', { type: 'warning' })
-  auth.logout()
+  await auth.logout()
   router.push('/login')
 }
 </script>

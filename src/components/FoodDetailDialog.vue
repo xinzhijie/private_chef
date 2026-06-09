@@ -29,6 +29,10 @@
         <h4>备注 / 做法</h4>
         <p class="remark-text">{{ food.remark }}</p>
       </div>
+      <div class="detail-section" v-if="orderNote?.remark">
+        <h4>点餐备注</h4>
+        <p class="order-remark-text">{{ orderNote.username }}:{{ orderNote.remark }}</p>
+      </div>
     </div>
     <template #footer>
       <el-button @click="$emit('update:visible', false)">关闭</el-button>
@@ -51,7 +55,8 @@ const props = defineProps({
   visible: Boolean,
   food: Object,
   showOrderBtn: { type: Boolean, default: false },
-  quantity: { type: Number, default: 0 }
+  quantity: { type: Number, default: 0 },
+  orderNote: { type: Object, default: null }
 })
 
 const emit = defineEmits(['update:visible', 'add-to-cart'])
@@ -126,5 +131,13 @@ function handleAddToCart() {
   padding: 12px;
   border-radius: 6px;
   border-left: 3px solid #e6a23c;
+}
+
+.order-remark-text {
+  background: #ecf5ff;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 3px solid #0085ff;
+  color: #303133;
 }
 </style>

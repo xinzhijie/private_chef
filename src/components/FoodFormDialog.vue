@@ -104,8 +104,8 @@ const rules = {
   type: [{ required: true, message: '请选择餐段', trigger: 'change' }]
 }
 
-function loadCategories() {
-  categories.value = categoryStore.getCategories(form.type)
+async function loadCategories() {
+  categories.value = await categoryStore.getCategories(form.type)
   if (form.category_id && !categories.value.some((c) => c.id === form.category_id)) {
     form.category_id = null
   }
@@ -125,7 +125,7 @@ async function handleNewCategory() {
       inputErrorMessage: '类别名称不能为空'
     })
     const name = value.trim()
-    const result = categoryStore.addCategory(name, form.type)
+    const result = await categoryStore.addCategory(name, form.type)
     if (!result.success && result.id) {
       form.category_id = result.id
       ElMessage.warning(result.message)
@@ -136,13 +136,13 @@ async function handleNewCategory() {
       form.category_id = result.id
       ElMessage.success('类别已创建')
     }
-    loadCategories()
+    await loadCategories()
   } catch {
     // cancelled
   }
 }
 
-watch(() => props.visible, (val) => {
+watch(() => props.visible, async (val) => {
   if (val) {
     if (props.food) {
       isEdit.value = true
@@ -159,7 +159,7 @@ watch(() => props.visible, (val) => {
       isEdit.value = false
       Object.assign(form, defaultForm())
     }
-    loadCategories()
+    await loadCategories()
   }
 })
 

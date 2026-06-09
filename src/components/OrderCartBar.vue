@@ -21,6 +21,15 @@
             <div class="item-info">
               <div class="item-name">{{ item.food.name }}</div>
               <div v-if="item.food.material" class="item-desc">{{ item.food.material }}</div>
+              <el-input
+                :model-value="item.remark"
+                placeholder="备注，如：少盐、不要葱"
+                size="small"
+                maxlength="100"
+                clearable
+                class="item-remark"
+                @update:model-value="(val) => cart.setRemark(mealType, item.food.id, val)"
+              />
             </div>
             <div class="qty-control">
               <button class="qty-btn minus" @click.stop="cart.removeItem(mealType, item.food.id)">
@@ -179,7 +188,7 @@ defineExpose({ closeDrawer })
 
 .panel-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 12px 0;
   border-bottom: 1px solid #f5f5f5;
@@ -231,6 +240,11 @@ defineExpose({ closeDrawer })
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-bottom: 6px;
+}
+
+.item-remark {
+  margin-top: 4px;
 }
 
 .qty-control {
@@ -238,6 +252,7 @@ defineExpose({ closeDrawer })
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  padding-top: 14px;
 }
 
 .qty-btn {

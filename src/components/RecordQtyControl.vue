@@ -19,6 +19,7 @@ const props = defineProps({
   foodName: { type: String, required: true },
   type: { type: String, required: true },
   orderDate: { type: String, required: true },
+  remark: { type: String, default: '' },
   count: { type: Number, default: 0 }
 })
 
@@ -27,14 +28,14 @@ const emit = defineEmits(['changed'])
 const auth = useAuthStore()
 const orderStore = useOrderStore()
 
-function onAdd() {
-  orderStore.addMyOrder(auth.user, props.foodId, props.foodName, props.type, props.orderDate)
+async function onAdd() {
+  await orderStore.addMyOrder(auth.user, props.foodId, props.foodName, props.type, props.orderDate, props.remark)
   emit('changed')
 }
 
-function onRemove() {
+async function onRemove() {
   if (props.count <= 0) return
-  orderStore.removeMyOrder(auth.user.id, props.foodId, props.type, props.orderDate)
+  await orderStore.removeMyOrder(auth.user.id, props.foodId, props.type, props.orderDate, props.remark)
   emit('changed')
 }
 </script>

@@ -125,21 +125,21 @@ const roleTagType = computed(() => {
   return map[auth.user?.role] || 'info'
 })
 
-function loadUsers() {
-  users.value = auth.getAllUsers()
+async function loadUsers() {
+  users.value = await auth.getAllUsers()
 }
 
-function handleRoleChange(row) {
-  auth.updateUserRole(row.id, row.role)
+async function handleRoleChange(row) {
+  await auth.updateUserRole(row.id, row.role)
   ElMessage.success('角色已更新')
 }
 
 async function handleDeleteUser(row) {
   await ElMessageBox.confirm(`确定删除用户「${row.username}」吗？`, '删除确认', { type: 'warning' })
-  const result = auth.deleteUser(row.id)
+  const result = await auth.deleteUser(row.id)
   if (result.success) {
     ElMessage.success('用户已删除')
-    loadUsers()
+    await loadUsers()
   } else {
     ElMessage.error(result.message)
   }
@@ -148,14 +148,14 @@ async function handleDeleteUser(row) {
 async function handleCreateUser() {
   const valid = await createFormRef.value?.validate().catch(() => false)
   if (!valid) return
-  const result = auth.createUser(createForm.username, createForm.password, createForm.role)
+  const result = await auth.createUser(createForm.username, createForm.password, createForm.role)
   if (result.success) {
     ElMessage.success('用户创建成功')
     showCreateDialog.value = false
     createForm.username = ''
     createForm.password = ''
     createForm.role = 'user'
-    loadUsers()
+    await loadUsers()
   } else {
     ElMessage.error(result.message)
   }

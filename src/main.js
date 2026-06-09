@@ -7,12 +7,10 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 import App from './App.vue'
 import router from './router'
-import { initDatabase } from './db'
 import { useAuthStore } from './stores/auth'
+import { setUnauthorizedHandler } from './api/client'
 
 async function bootstrap() {
-  await initDatabase()
-
   const app = createApp(App)
   const pinia = createPinia()
 
@@ -25,7 +23,18 @@ async function bootstrap() {
   }
 
   const auth = useAuthStore()
-  auth.loadSession()
+
+  setUnauthorizedHandler(() => {
+    auth.clearSession()
+    if (router.currentRoute.value.name !== 'Login') {
+      router.push({
+        name: 'Login',
+        query: { redirect: router.currentRoute.value.fullPath }
+      })
+    }
+  })
+
+  await auth.initSession()
 
   app.mount('#app')
 }

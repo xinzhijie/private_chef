@@ -129,9 +129,9 @@ function getQty(foodId) {
   return cart.getQuantity(currentMeal.value, foodId)
 }
 
-function loadData() {
-  categories.value = categoryStore.getCategories(currentMeal.value)
-  foods.value = foodStore.getFoods(currentMeal.value, true, currentCategory.value)
+async function loadData() {
+  categories.value = await categoryStore.getCategories(currentMeal.value)
+  foods.value = await foodStore.getFoods(currentMeal.value, true, currentCategory.value)
 }
 
 function switchMeal(meal) {
@@ -155,18 +155,18 @@ function handleRemove(food) {
 async function handleSubmit(items) {
   submitting.value = true
   try {
-    const count = orderStore.placeOrders(auth.user, items, currentMeal.value, today)
+    const count = await orderStore.placeOrders(auth.user, items, currentMeal.value, today)
     cart.clearCart(currentMeal.value)
     ElMessage.success(`已成功提交 ${count} 道菜`)
-    loadData()
+    await loadData()
   } finally {
     submitting.value = false
   }
 }
 
 watch(currentMeal, loadData)
-watch(currentCategory, () => {
-  foods.value = foodStore.getFoods(currentMeal.value, true, currentCategory.value)
+watch(currentCategory, async () => {
+  foods.value = await foodStore.getFoods(currentMeal.value, true, currentCategory.value)
 })
 onMounted(loadData)
 </script>

@@ -65,7 +65,7 @@ async function handleLogin() {
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) return
   loading.value = true
-  const result = auth.login(form.username, form.password)
+  const result = await auth.login(form.username, form.password)
   loading.value = false
   if (result.success) {
     ElMessage.success('登录成功')

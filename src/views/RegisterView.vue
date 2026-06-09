@@ -81,7 +81,7 @@ async function handleRegister() {
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) return
   loading.value = true
-  const result = auth.register(form.username, form.password)
+  const result = await auth.register(form.username, form.password)
   loading.value = false
   if (result.success) {
     ElMessage.success(result.message)

@@ -1,83 +1,35 @@
 import { defineStore } from 'pinia'
-import { queryAll, queryOne, execute } from '@/db'
+import { api } from '@/api/client'
 
 export const useFoodStore = defineStore('food', () => {
-  function getFoods(type, onlyActive = false, categoryId = null) {
-    let sql = `SELECT f.*, c.name AS category_name
-      FROM foods f
-      LEFT JOIN categories c ON f.category_id = c.id`
-    const params = []
-    const conditions = []
-    if (type) {
-      conditions.push('f.type = ?')
-      params.push(type)
-    }
-    if (onlyActive) {
-      conditions.push('f.status = 1')
-    }
-    if (categoryId) {
-      conditions.push('f.category_id = ?')
-      params.push(categoryId)
-    }
-    if (conditions.length) {
-      sql += ' WHERE ' + conditions.join(' AND ')
-    }
-    sql += ' ORDER BY c.sort_order ASC, f.create_time DESC'
-    return queryAll(sql, params)
+  async function getFoods(type, onlyActive = false, categoryId = null) {
+    return api.get('/foods', {
+      type: type || undefined,
+      onlyActive: onlyActive ? 'true' : undefined,
+      categoryId: categoryId || undefined
+    })
   }
 
-  function getFoodById(id) {
-    return queryOne(
-      `SELECT f.*, c.name AS category_name
-       FROM foods f
-       LEFT JOIN categories c ON f.category_id = c.id
-       WHERE f.id = ?`,
-      [id]
-    )
+  async function getFoodById(id) {
+    return api.get(`/foods/${id}`)
   }
 
-  function addFood(food) {
-    const id = execute(
-      'INSERT INTO foods (name, image, type, category_id, status, material, remark) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [
-        food.name,
-        food.image || '',
-        food.type,
-        food.category_id || null,
-        food.status ?? 1,
-        food.material || '',
-        food.remark || ''
-      ]
-    )
-    return id
+  async function addFood(food) {
+    const data = await api.post('/foods', food)
+    return data.id
   }
 
-  function updateFood(id, food) {
-    execute(
-      'UPDATE foods SET name = ?, image = ?, type = ?, category_id = ?, status = ?, material = ?, remark = ? WHERE id = ?',
-      [
-        food.name,
-        food.image || '',
-        food.type,
-        food.category_id || null,
-        food.status,
-        food.material || '',
-        food.remark || '',
-        id
-      ]
-    )
+  async function updateFood(id, food) {
+    await api.put(`/foods/${id}`, food)
   }
 
-  function toggleStatus(id) {
-    const food = getFoodById(id)
-    if (!food) return
-    const newStatus = food.status === 1 ? 0 : 1
-    execute('UPDATE foods SET status = ? WHERE id = ?', [newStatus, id])
-    return newStatus
+  async function toggleStatus(id) {
+    const data = await api.patch(`/foods/${id}/status`)
+    return data.status
   }
 
-  function deleteFood(id) {
-    execute('DELETE FROM foods WHERE id = ?', [id])
+  async function deleteFood(id) {
+    await api.del(`/foods/${id}`)
   }
 
   return {

@@ -23,9 +23,16 @@ export const useCartStore = defineStore('cart', () => {
   function addItem(mealType, food) {
     const cart = carts[mealType]
     if (!cart[food.id]) {
-      cart[food.id] = { food, quantity: 0 }
+      cart[food.id] = { food, quantity: 0, remark: '' }
     }
     cart[food.id].quantity++
+  }
+
+  function setRemark(mealType, foodId, remark) {
+    const cart = carts[mealType]
+    if (cart[foodId]) {
+      cart[foodId].remark = remark
+    }
   }
 
   function removeItem(mealType, foodId) {
@@ -47,6 +54,7 @@ export const useCartStore = defineStore('cart', () => {
     getQuantity,
     getTotalCount,
     addItem,
+    setRemark,
     removeItem,
     clearCart
   }
